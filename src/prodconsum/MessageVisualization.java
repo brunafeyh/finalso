@@ -12,6 +12,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Queue;
 
+/**
+ * Classe MessageVisualization fornece a interface gráfica para visualizar o problema Produtor-Consumidor.
+ * Exibe gráficos de linha e de barras, o estado do buffer e um log de atividades.
+ */
 public class MessageVisualization extends JFrame {
     private final XYSeries producerSeries;
     private final XYSeries consumerSeries;
@@ -25,11 +29,18 @@ public class MessageVisualization extends JFrame {
     private Consumer consumer;
     private Thread producerThread;
 
+    /**
+     * Construtor da classe MessageVisualization.
+     * Configura a interface gráfica e os componentes necessários.
+     * @param buffer Objeto de buffer que armazena as mensagens.
+     * @param bufferCapacity Capacidade máxima do buffer.
+     */
     public MessageVisualization(BlockingQueueBuffer buffer, int bufferCapacity) {
         setTitle("Message Exchange Visualization");
         setLayout(new BorderLayout());
         setSize(1000, 700);
 
+        // Configuração dos gráficos de linha e barras
         producerSeries = new XYSeries("Producer Messages");
         consumerSeries = new XYSeries("Consumer Messages");
         XYSeriesCollection lineDataset = new XYSeriesCollection();
@@ -56,6 +67,7 @@ public class MessageVisualization extends JFrame {
         );
         ChartPanel barChartPanel = new ChartPanel(barChart);
 
+        // Painel de visualização do buffer
         bufferPanel = new JPanel(new GridLayout(1, bufferCapacity, 5, 5));
         for (int i = 0; i < bufferCapacity; i++) {
             JPanel square = new JPanel();
@@ -67,6 +79,7 @@ public class MessageVisualization extends JFrame {
             bufferPanel.add(square);
         }
 
+        // Área de log para exibir mensagens de atividade
         logArea = new JTextArea(10, 20);
         logArea.setEditable(false);
         JScrollPane logScrollPane = new JScrollPane(logArea);
@@ -82,6 +95,7 @@ public class MessageVisualization extends JFrame {
 
         add(bufferPanel, BorderLayout.SOUTH);
 
+        // Painel de controle com botões de iniciar/parar
         JPanel controlPanel = new JPanel();
         JButton startButton = new JButton("Iniciar");
         JButton stopButton = new JButton("Parar");
@@ -96,9 +110,15 @@ public class MessageVisualization extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
 
+        // Atualiza a visualização a cada segundo
         new Timer(1000, _ -> updateVisualization(buffer, bufferCapacity)).start();
     }
 
+    /**
+     * Inicia as threads de produtor e consumidor.
+     * @param buffer Buffer de mensagens para armazenar e processar os itens.
+     * @param bufferCapacity Capacidade máxima do buffer.
+     */
     private void startProducerConsumer(BlockingQueueBuffer buffer, int bufferCapacity) {
         if (producerThread == null || !producerThread.isAlive()) {
             producer = new Producer(buffer);
@@ -113,6 +133,9 @@ public class MessageVisualization extends JFrame {
         }
     }
 
+    /**
+     * Para a execução das threads de produtor e consumidor.
+     */
     private void stopProducerConsumer() {
         if (producer != null && consumer != null) {
             producer.stop();
@@ -121,7 +144,13 @@ public class MessageVisualization extends JFrame {
         }
     }
 
+    /**
+     * Atualiza a visualização do buffer, gráficos e log.
+     * @param buffer Buffer de mensagens contendo os dados para exibição.
+     * @param bufferCapacity Capacidade máxima do buffer.
+     */
     private void updateVisualization(BlockingQueueBuffer buffer, int bufferCapacity) {
+        // Atualiza gráfico de mensagens do produtor e consumidor
         producerSeries.add(producerCounter++, buffer.getProducerMessageCount());
         consumerSeries.add(consumerCounter++, buffer.getConsumerMessageCount());
 
@@ -129,18 +158,18 @@ public class MessageVisualization extends JFrame {
         processedMessageCounter += processedMessages;
         messageProcessedDataset.addValue(processedMessageCounter, "Messages", String.valueOf(consumerCounter));
 
+        // Atualiza visualização do estado do buffer
         Queue<String> messageQueue = buffer.getMessageQueue();
         Component[] squares = bufferPanel.getComponents();
         int i = 0;
         for (String message : messageQueue) {
-            if(i != bufferCapacity){
+            if (i < bufferCapacity) {
                 JPanel square = (JPanel) squares[i];
                 JLabel label = (JLabel) square.getComponent(0);
                 label.setText(message);
                 square.setBackground(Color.GREEN);
                 i++;
-            }
-            else break;
+            } else break;
         }
 
         for (; i < bufferCapacity; i++) {
@@ -150,12 +179,18 @@ public class MessageVisualization extends JFrame {
             square.setBackground(Color.LIGHT_GRAY);
         }
 
+        // Adiciona mensagens ao log
         String logMessages = buffer.getAllLogs();
         if (!logMessages.isEmpty()) {
             logArea.append(logMessages + "\n");
         }
     }
 
+    /**
+     * Método principal para inicializar a interface gráfica.
+     * Solicita a entrada do usuário para definir o tamanho do buffer.
+     * @param args Argumentos da linha de comando.
+     */
     public static void main(String[] args) {
         String input = JOptionPane.showInputDialog("Enter buffer size:");
         int bufferCapacity;
@@ -171,4 +206,3 @@ public class MessageVisualization extends JFrame {
         new MessageVisualization(buffer, bufferCapacity);
     }
 }
-

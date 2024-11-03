@@ -8,8 +8,17 @@ import org.jfree.chart.plot.XYPlot;
 import java.awt.*;
 import java.text.DecimalFormat;
 
+/**
+ * Classe utilitária para personalizar a aparência do gráfico, ajustando cores, formatação dos eixos
+ * e visibilidade das linhas de grade para melhor visualização.
+ */
 public class ChartCustomizer {
 
+    /**
+     * Personaliza o gráfico definindo o fundo, a formatação dos eixos e as linhas de grade.
+     * Ajusta a cor e estilo dos dados exibidos no gráfico.
+     * @param chart O gráfico a ser customizado.
+     */
     public static void customizeChart(JFreeChart chart) {
         XYPlot plot = chart.getXYPlot();
 
