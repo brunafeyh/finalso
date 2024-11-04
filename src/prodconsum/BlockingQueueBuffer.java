@@ -14,12 +14,14 @@ public class BlockingQueueBuffer {
     private final LinkedList<String> log = new LinkedList<>();
     private int producerMessageCount = 0;
     private int consumerMessageCount = 0;
+    private final int capacity; // Campo para armazenar a capacidade do buffer
 
     /**
      * Construtor da classe BlockingQueueBuffer.
      * @param capacity Capacidade do buffer. Inicializa a fila de confirmações (ackQueue) com mensagens vazias.
      */
     public BlockingQueueBuffer(int capacity) {
+        this.capacity = capacity; // Armazena a capacidade no campo
         for (int i = 0; i < capacity; i++) {
             ackQueue.offer("EMPTY");
         }
@@ -60,7 +62,7 @@ public class BlockingQueueBuffer {
         consumerMessageCount++;
         log.add("Consumer: Received message -> " + message);
         System.out.println("Consumer: Received message -> " + message);
-
+        sendAck();
         notifyAll();
         return message;
     }
@@ -118,5 +120,26 @@ public class BlockingQueueBuffer {
             allLogs.append(log.removeFirst()).append("\n");
         }
         return allLogs.toString();
+    }
+
+    /**
+     * Limpa o buffer, resetando as filas e reiniciando as mensagens de confirmação.
+     */
+    public synchronized void clearBuffer() {
+        messageQueue.clear();
+        ackQueue.clear();
+        log.clear();
+        for (int i = 0; i < capacity; i++) {
+            ackQueue.offer("EMPTY");
+        }
+        System.out.println("Buffer has been cleared.");
+    }
+
+    /**
+     * Retorna a capacidade do buffer.
+     * @return Capacidade do buffer.
+     */
+    public int getCapacity() {
+        return capacity;
     }
 }

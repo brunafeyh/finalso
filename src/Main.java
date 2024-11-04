@@ -3,17 +3,9 @@ import prodconsumsemaphore.view.ProdutorConsumidorGUI;
 
 import javax.swing.*;
 
-/**
- * Classe principal para executar a aplicação Produtor-Consumidor.
- * Oferece ao usuário uma escolha entre duas versões: uma usando passagem de mensagem
- * e outra usando semáforos para sincronização.
- */
 public class Main {
     public static void main(String[] args) {
-        String[] options = {
-                "Solução Produtor e Consumidor com passagem de mensagem",
-                "Solução Produtor e Consumidor por Semáforo"
-        };
+        String[] options = {"Solução Produtor e Consumidor com passagem de mensagem", "Solução Produtor e Consumidor por Semáforo"};
         int choice = JOptionPane.showOptionDialog(
                 null,
                 "Selecione a versão para executar:",
@@ -28,13 +20,13 @@ public class Main {
         switch (choice) {
             case 0:
                 System.out.println("Iniciando Produtor e Consumidor sem semáforo.");
-                MessageVisualization.main(new String[]{}); // Inicia a versão com passagem de mensagem
+                MessageVisualization.main(new String[]{});
                 break;
 
             case 1:
                 System.out.println("Iniciando Produtor e Consumidor com semáforo.");
                 javax.swing.SwingUtilities.invokeLater(() -> {
-                    ProdutorConsumidorGUI gui = new ProdutorConsumidorGUI(); // Inicia a versão com semáforo
+                    ProdutorConsumidorGUI gui = new ProdutorConsumidorGUI();
                     gui.setVisible(true);
                 });
                 break;

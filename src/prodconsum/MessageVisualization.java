@@ -28,14 +28,12 @@ public class MessageVisualization extends JFrame {
     private Producer producer;
     private Consumer consumer;
     private Thread producerThread;
+    private Timer updateTimer;
+    private final BlockingQueueBuffer buffer;
 
-    /**
-     * Construtor da classe MessageVisualization.
-     * Configura a interface gráfica e os componentes necessários.
-     * @param buffer Objeto de buffer que armazena as mensagens.
-     * @param bufferCapacity Capacidade máxima do buffer.
-     */
     public MessageVisualization(BlockingQueueBuffer buffer, int bufferCapacity) {
+        this.buffer = buffer;  // Armazena o buffer como um campo da classe para poder acessá-lo no stopProducerConsumer
+
         setTitle("Message Exchange Visualization");
         setLayout(new BorderLayout());
         setSize(1000, 700);
@@ -109,18 +107,18 @@ public class MessageVisualization extends JFrame {
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
-
-        // Atualiza a visualização a cada segundo
-        new Timer(1000, _ -> updateVisualization(buffer, bufferCapacity)).start();
     }
 
-    /**
-     * Inicia as threads de produtor e consumidor.
-     * @param buffer Buffer de mensagens para armazenar e processar os itens.
-     * @param bufferCapacity Capacidade máxima do buffer.
-     */
     private void startProducerConsumer(BlockingQueueBuffer buffer, int bufferCapacity) {
         if (producerThread == null || !producerThread.isAlive()) {
+            // Reinicia os gráficos e contadores
+            producerSeries.clear();
+            consumerSeries.clear();
+            producerCounter = 0;
+            consumerCounter = 0;
+            processedMessageCounter = 0;
+            messageProcessedDataset.clear();
+
             producer = new Producer(buffer);
             consumer = new Consumer(buffer, bufferCapacity);
             producerThread = new Thread(producer);
@@ -128,27 +126,38 @@ public class MessageVisualization extends JFrame {
             producerThread.start();
             consumerThread.start();
             logArea.append("Producer and Consumer started.\n");
+
+            // Inicia o Timer quando o produtor e o consumidor começam
+            if (updateTimer == null) {
+                updateTimer = new Timer(1000, _ -> updateVisualization(buffer, bufferCapacity));
+                updateTimer.start();
+            }
         } else {
             logArea.append("Producer and Consumer are already running.\n");
         }
     }
 
-    /**
-     * Para a execução das threads de produtor e consumidor.
-     */
     private void stopProducerConsumer() {
         if (producer != null && consumer != null) {
             producer.stop();
             consumer.stop();
             logArea.append("Producer and Consumer stopped.\n");
+
+            // Para o Timer quando o produtor e o consumidor param
+            if (updateTimer != null) {
+                updateTimer.stop();
+                updateTimer = null;
+            }
+
+            // Limpa o buffer
+            buffer.clearBuffer();
+            logArea.append("Buffer cleared.\n");
+
+            // Atualiza a interface para refletir o buffer vazio
+            updateVisualization(buffer, buffer.getCapacity());
         }
     }
 
-    /**
-     * Atualiza a visualização do buffer, gráficos e log.
-     * @param buffer Buffer de mensagens contendo os dados para exibição.
-     * @param bufferCapacity Capacidade máxima do buffer.
-     */
     private void updateVisualization(BlockingQueueBuffer buffer, int bufferCapacity) {
         // Atualiza gráfico de mensagens do produtor e consumidor
         producerSeries.add(producerCounter++, buffer.getProducerMessageCount());
